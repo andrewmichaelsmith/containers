@@ -28,6 +28,7 @@ CLONE_NEWNET = 0x40000000
 CLONE_NEWUSER = 0x10000000
 CLONE_NEWIPC = 0x08000000
 CLONE_NEWUTS = 0x04000000
+CLONE_NEWNS = 0x00020000
 
 libc = CDLL("libc.so.6")
 
@@ -48,7 +49,7 @@ def app():
     f_c = CFUNCTYPE(c_int)(namespaced_child_func)
 
     flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUSER \
-    | CLONE_NEWIPC | CLONE_NEWUTS
+    | CLONE_NEWIPC | CLONE_NEWUTS | CLONE_NEWNS
 
     libc.clone(f_c, stack_top, flags)
 
