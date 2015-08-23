@@ -1,6 +1,12 @@
-#Credit: http://stackoverflow.com/questions/13373629/clone-process-support-in-python
-#http://crosbymichael.com/creating-containers-part-1.html
-#http://lxr.free-electrons.com/source/include/linux/sched.h?v=3.4
+"""
+
+    Launching namespaced processes
+
+    References:
+    - http://stackoverflow.com/questions/13373629/clone-process-support-in-python
+    - http://crosbymichael.com/creating-containers-part-1.html
+    - http://lxr.free-electrons.com/source/include/linux/sched.h?v=3.4
+"""
 from ctypes import (
     CDLL,
     c_void_p,
@@ -13,6 +19,7 @@ from ctypes import (
 import time
 import subprocess
 import os
+import sys
 
 PARENT = "Parent"
 CHILD = "Child"
@@ -23,9 +30,6 @@ CLONE_NEWUSER = 0x10000000
 CLONE_NEWIPC = 0x08000000
 CLONE_NEWUTS = 0x04000000
 
-flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUSER \
-    | CLONE_NEWIPC | CLONE_NEWUTS
-
 libc = CDLL("libc.so.6")
 
 # We need the top of the stack.
@@ -33,32 +37,26 @@ stack = c_char_p(" " * 8096)
 stack_top = c_void_p(cast(stack, c_void_p).value + 8096)
 
 
-def print_pid(ident):
-    print "%s PID: %s" % (ident, os.getpid())
+def namespaced_child_func():
+    print "Child PID: %s" % os.getpid()
 
-def namespaced_func():
-    print_pid(CHILD)
+    if sys.argv[1:]:
+        print subprocess.check_output(sys.argv[1:])
 
-    #This shows loads, why?
-    #Because it can still see proc
-    #print subprocess.check_output(['ps', 'aux'])
     return 0
 
-
-def start_stats():
-    print_pid(PARENT)
-
 def app():
-    # Conver function to c type returning an integer.
-    f_c = CFUNCTYPE(c_int)(namespaced_func)
+    f_c = CFUNCTYPE(c_int)(namespaced_child_func)
 
-    # Call clone with the NEWPID Flag
+    flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUSER \
+    | CLONE_NEWIPC | CLONE_NEWUTS
 
-    val = libc.clone(f_c, stack_top, CLONE_NEWPID)
+    val = libc.clone(f_c, stack_top, flags)
 
 
 def run():
-    start_stats()
+    print "Parent PID: %s" % os.getpid()
+
     app()
 
 if __name__ == "__main__":
