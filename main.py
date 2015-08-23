@@ -16,7 +16,6 @@ from ctypes import (
     CFUNCTYPE,
 )
 
-import time
 import subprocess
 import os
 import sys
@@ -51,7 +50,7 @@ def app():
     flags = CLONE_NEWPID | CLONE_NEWNET | CLONE_NEWUSER \
     | CLONE_NEWIPC | CLONE_NEWUTS
 
-    val = libc.clone(f_c, stack_top, flags)
+    libc.clone(f_c, stack_top, flags)
 
 
 def run():
