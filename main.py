@@ -41,7 +41,7 @@ def namespaced_child_func():
     print "Child PID: %s" % os.getpid()
 
     if sys.argv[1:]:
-        print subprocess.check_output(sys.argv[1:])
+        print subprocess.check_output(sys.argv[1:], shell=True)
 
     return 0
 
